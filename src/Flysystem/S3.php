@@ -62,7 +62,21 @@ class S3 implements FlysystemPluginInterface, ContainerFactoryPluginInterface {
   protected $urlPrefix;
 
   /**
-   * Constructs an S3 object.
+   * Whether the root is in the public path.
+   *
+   * @var bool
+   */
+  protected $isPublic;
+
+  /**
+   * Whether drupal uses its internal url
+   * 
+   * @var bool
+   */
+  protected $useInternalUrl;
+
+  /**
+   * Constructs a S3v3 object.
    *
    * @param \Aws\AwsClientInterface $client
    *   The AWS client.
@@ -73,6 +87,8 @@ class S3 implements FlysystemPluginInterface, ContainerFactoryPluginInterface {
     $this->client = $client;
     $this->bucket = $config->get('bucket', '');
     $this->prefix = $config->get('prefix', '');
+    $this->isPublic = $config->get('public', FALSE);
+    $this->useInternalUrl = $config->get('use_internal_url', FALSE);
     $this->options = $config->get('options', []);
 
     $this->urlPrefix = $this->calculateUrlPrefix($config);
@@ -159,10 +175,15 @@ class S3 implements FlysystemPluginInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function getExternalUrl($uri) {
-    $target = $this->getTarget($uri);
 
+
+    $target = $this->getTarget($uri);
     if (strpos($target, 'styles/') === 0 && !file_exists($uri)) {
       $this->generateImageStyle($target);
+    }
+
+    if (!$this->isPublic || $this->useInternalUrl) {
+       return $this->getDownloadlUrl($uri);
     }
 
     return $this->urlPrefix . '/' . UrlHelper::encodePath($target);
