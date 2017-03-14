@@ -8,6 +8,10 @@ use League\Flysystem\Config;
 use League\Flysystem\Util;
 use League\Flysystem\Util\MimeType;
 
+
+use GuzzleHttp\Psr7\StreamWrapper;
+use GuzzleHttp\Psr7\CachingStream;
+
 /**
  * Overrides methods so it works with Drupal.
  */
@@ -26,6 +30,43 @@ class S3Adapter extends AwsS3Adapter {
     // Check for directory existance.
     return $this->s3Client->doesObjectExist($this->bucket, $location . '/');
   }
+
+
+  /**
+   * Read a file as a stream.
+   *
+   * @param string $path
+   *
+   * @return array|false
+   */
+  public function readStream($path)
+  {
+
+      $response = $this->readObject($path);
+
+      if ($response !== false) {
+         
+          $contents = $response['contents'];
+          if ($response['size'] <= 1024) {
+             $stream = fopen('php://memory', 'r+');
+             fwrite($stream, $contents->getContents());
+             rewind($stream); 
+             $response['stream'] = $stream;
+          } else {
+             // $response['stream'] = StreamWrapper::getResource($response['contents']);
+             $c = new CachingStream($contents);
+             $stream = StreamWrapper::getResource($c);
+             $response['stream'] = StreamWrapper::getResource($c);
+             fread($stream, 1);
+             rewind($stream);
+             $response['stream'] = $stream;
+          }
+          unset($response['contents']);
+      }
+
+      return $response;
+  }
+
 
   /**
    * {@inheritdoc}
