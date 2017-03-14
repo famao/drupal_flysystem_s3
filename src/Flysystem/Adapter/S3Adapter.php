@@ -56,7 +56,6 @@ class S3Adapter extends AwsS3Adapter {
              // $response['stream'] = StreamWrapper::getResource($response['contents']);
              $c = new CachingStream($contents);
              $stream = StreamWrapper::getResource($c);
-             $response['stream'] = StreamWrapper::getResource($c);
              fread($stream, 1);
              rewind($stream);
              $response['stream'] = $stream;
