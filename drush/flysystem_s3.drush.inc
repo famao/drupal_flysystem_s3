@@ -43,6 +43,11 @@ function drush_flysystem_s3_sync_to($from, $to) {
 
   foreach($files as $fname => $fvalue) {
     $a = str_replace($dir, '', $fname);
+    $d = $to . dirname($a);
+    echo "copy $a to $d\n";
+    if (!file_exists($d)) {
+     mkdir($d, 0755, true);
+    }
     file_unmanaged_copy($fname, $to . $a);
   }
 
