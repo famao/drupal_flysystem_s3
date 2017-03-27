@@ -70,7 +70,7 @@ class S3 implements FlysystemPluginInterface, ContainerFactoryPluginInterface {
 
   /**
    * Whether drupal uses its internal url
-   * 
+   *
    * @var bool
    */
   protected $useInternalUrl;
@@ -196,7 +196,7 @@ class S3 implements FlysystemPluginInterface, ContainerFactoryPluginInterface {
     // @TODO: If the bucket exists, can we write to it? Find a way to test that.
 
     // when prefix setting exists, check it first.
-    if (!$this->prefix != '') {
+    if ($this->prefix != '') {
       if ($this->client->doesObjectExist($this->bucket, $this->prefix, []))) {
         return [];
       }
